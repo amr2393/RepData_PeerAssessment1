@@ -1,9 +1,9 @@
 ---
 title: 'Reproducible Research: Peer Assessment 1'
 output:
-  pdf_document: default
   html_document:
     keep_md: yes
+  pdf_document: default
 ---
 
 
@@ -42,6 +42,7 @@ ggplot() + geom_histogram(data = stepsPerDay, aes(x = totalSteps, fill = 'coral'
 
 ```{r, echo=TRUE}
 meanStepsPerDay = mean(stepsPerDay$totalSteps)
+print(meanStepsPerDay)
 medianStepsPerDay = median(stepsPerDay$totalSteps)
 ```
 
@@ -95,3 +96,24 @@ imputedData$steps[is.na(imputedData$steps)] = stepsPerInterval[as.character(impu
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+First we add the weekday/weekend factor and compute means by factor:
+```{r, echo=TRUE}
+imputedData$week = as.factor( 
+  ifelse(
+    weekdays(as.Date(imputedData$date)) %in% c("Saturday","Sunday"),
+    "weekend", "weekday"
+  ))
+
+weekendMeans = imputedData %>% 
+  filter(!is.na(steps)) %>% # Remove entries with NA steps
+  group_by(week, interval) %>% # Group into weekend/day
+  summarise(meanSteps = mean(steps))  #Find mean steps each interval
+```
+
+Then plot:
+```{r, echo=TRUE}
+
+ggplot() + geom_line(data = weekendMeans, aes(x = interval, y = meanSteps), binwidth = 1000 ) + facet_grid(week ~ .)
+
+```
